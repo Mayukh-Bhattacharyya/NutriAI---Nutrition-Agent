@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NutriAI — IBM Watsonx Nutrition Agent</title>
+
+  <!-- Bootstrap 5.3 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <!-- Custom Styles -->
+  <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- ╔══════════════════════════════════════════════════════╗ -->
+<!-- ║  TOP NAVIGATION BAR                                  ║ -->
+<!-- ╚══════════════════════════════════════════════════════╝ -->
+<nav class="navbar navbar-expand-lg sticky-top" id="mainNav">
+  <div class="container-fluid px-3 px-lg-4">
+    <!-- Brand -->
+    <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+      <div class="brand-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+      <span class="brand-text">Nutri<span class="brand-ai">AI</span></span>
+      <span class="badge brand-badge ms-1">Granite</span>
+    </a>
+
+    <!-- Mobile toggles -->
+    <div class="d-flex align-items-center gap-2 d-lg-none">
+      <button class="btn btn-sm theme-toggle" id="mobileThemeToggle" title="Toggle dark mode">
+        <i class="bi bi-moon-fill"></i>
+      </button>
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <i class="bi bi-list fs-4"></i>
+      </button>
+    </div>
+
+    <!-- Nav links -->
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1">
+        <li class="nav-item">
+          <a class="nav-link nav-pill active" href="#" data-tab="chat">
+            <i class="bi bi-chat-dots-fill me-1"></i>Chat
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link nav-pill" href="#" data-tab="dashboard">
+            <i class="bi bi-speedometer2 me-1"></i>Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link nav-pill" href="#" data-tab="meal-planner">
+            <i class="bi bi-calendar3 me-1"></i>Meal Plan
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link nav-pill" href="#" data-tab="bmi">
+            <i class="bi bi-activity me-1"></i>BMI
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link nav-pill" href="#" data-tab="family">
+            <i class="bi bi-people-fill me-1"></i>Family
+          </a>
+        </li>
+        <li class="nav-item ms-lg-2">
+          <button class="btn btn-sm theme-toggle d-none d-lg-flex align-items-center gap-1" id="desktopThemeToggle">
+            <i class="bi bi-moon-fill"></i><span class="theme-label">Dark</span>
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- ╔══════════════════════════════════════════════════════╗ -->
+<!-- ║  HERO STRIP (visible on first load / chat tab)       ║ -->
+<!-- ╚══════════════════════════════════════════════════════╝ -->
+<div class="hero-strip" id="heroStrip">
+  <div class="container-fluid px-3 px-lg-5">
+    <div class="row align-items-center">
+      <div class="col-lg-7">
+        <div class="hero-badge mb-2">Powered by IBM Watsonx.ai ✦ Granite Models</div>
+        <h1 class="hero-title">Your Personal<br><span class="gradient-text">AI Nutrition Expert</span></h1>
+        <p class="hero-sub">Personalized meal plans · Calorie analysis · BMI tracking · Family nutrition · Indian food expertise</p>
+        <div class="d-flex flex-wrap gap-2 mt-3">
+          <button class="btn btn-primary btn-hero" onclick="document.getElementById('chatInput').focus()">
+            <i class="bi bi-chat-dots-fill me-2"></i>Start Chatting
+          </button>
+          <button class="btn btn-outline-hero" onclick="switchTab('meal-planner')">
+            <i class="bi bi-calendar3 me-2"></i>Generate Meal Plan
+          </button>
+        </div>
+      </div>
+      <div class="col-lg-5 d-none d-lg-flex justify-content-end">
+        <div class="hero-graphic">
+          <div class="food-orbit">
+            <div class="food-icon f1">🥗</div>
+            <div class="food-icon f2">🥦</div>
+            <div class="food-icon f3">🍎</div>
+            <div class="food-icon f4">🫐</div>
+            <div class="food-icon f5">🥙</div>
+            <div class="food-icon f6">🍛</div>
+          </div>
+          <div class="hero-center-badge">
+            <i class="bi bi-heart-pulse-fill"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ╔══════════════════════════════════════════════════════╗ -->
+<!-- ║  MAIN CONTENT AREA                                   ║ -->
+<!-- ╚══════════════════════════════════════════════════════╝ -->
+<main class="main-content">
+  <div class="container-fluid px-3 px-lg-4">
+
+    <!-- ── TAB: CHAT ───────────────────────────────────────── -->
+    <div class="tab-pane active fade-in" id="tab-chat">
+      <div class="row g-3">
+        <!-- Chat window -->
+        <div class="col-lg-8">
+          <div class="card content-card h-100 d-flex flex-column">
+            <div class="card-header d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center gap-2">
+                <div class="status-dot pulse"></div>
+                <span class="fw-600">NutriAI Chat</span>
+              </div>
+              <button class="btn btn-xs btn-ghost" id="clearChatBtn" title="Clear conversation">
+                <i class="bi bi-trash3"></i> Clear
+              </button>
+            </div>
+            <div class="card-body chat-messages flex-grow-1 overflow-y-auto" id="chatMessages">
+              <!-- Welcome message injected by JS -->
+            </div>
+            <div class="card-footer chat-footer">
+              <div class="quick-prompts mb-2" id="quickPrompts">
+                <button class="qp-btn" data-prompt="Give me a healthy Indian breakfast plan for weight loss">🌅 Breakfast Plan</button>
+                <button class="qp-btn" data-prompt="What are high-protein vegetarian foods available in India?">💪 Protein Foods</button>
+                <button class="qp-btn" data-prompt="How many calories in a plate of dal rice with sabzi?">🍽️ Calorie Check</button>
+                <button class="qp-btn" data-prompt="Create a diabetic-friendly meal plan for an Indian diet">🩺 Diabetic Diet</button>
+              </div>
+              <div class="chat-input-row d-flex gap-2">
+                <textarea class="form-control chat-input" id="chatInput"
+                  placeholder="Ask me anything about nutrition, meals, diet plans…"
+                  rows="1" maxlength="1000"></textarea>
+                <button class="btn btn-send" id="sendBtn">
+                  <i class="bi bi-send-fill"></i>
+                </button>
+              </div>
+              <div class="char-count text-end mt-1" id="charCount">0 / 1000</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Side panel: meal analysis + quick tips -->
+        <div class="col-lg-4 d-flex flex-column gap-3">
+          <!-- Meal Analyser -->
+          <div class="card content-card">
+            <div class="card-header">
+              <i class="bi bi-search-heart me-2 text-accent"></i><span class="fw-600">Meal Analyser</span>
+            </div>
+            <div class="card-body">
+              <textarea class="form-control input-field" id="mealInput" rows="3"
+                placeholder="e.g. 2 rotis, 1 bowl dal, 100g paneer, salad…"></textarea>
+              <div class="mt-2">
+                <label class="form-label label-sm">Portion size</label>
+                <input class="form-control input-field input-sm" type="text" id="portionInput"
+                  placeholder="e.g. standard serving / 200g" />
+              </div>
+              <button class="btn btn-primary w-100 mt-3 btn-ripple" id="analyseMealBtn">
+                <i class="bi bi-bar-chart-fill me-2"></i>Analyse Meal
+              </button>
+              <div id="mealAnalysisResult" class="result-box mt-3 d-none"></div>
+            </div>
+          </div>
+
+          <!-- Quick Tips -->
+          <div class="card content-card">
+            <div class="card-header">
+              <i class="bi bi-lightbulb-fill me-2 text-warning"></i><span class="fw-600">Quick Tips</span>
+            </div>
+            <div class="card-body">
+              <div class="d-flex gap-2">
+                <input class="form-control input-field" type="text" id="tipsTopicInput"
+                  placeholder="e.g. iron-rich foods, sleep nutrition…" />
+                <button class="btn btn-accent btn-ripple" id="getTipsBtn" title="Get tips">
+                  <i class="bi bi-lightning-fill"></i>
+                </button>
+              </div>
+              <div id="quickTipsResult" class="result-box mt-3 d-none"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB: DASHBOARD ──────────────────────────────────── -->
+    <div class="tab-pane d-none" id="tab-dashboard">
+      <div class="row g-3 mb-3">
+        <div class="col-md-3 col-6">
+          <div class="stat-card stat-green">
+            <div class="stat-icon"><i class="bi bi-fire"></i></div>
+            <div class="stat-val" id="statCalories">—</div>
+            <div class="stat-label">Daily Calories</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="stat-card stat-blue">
+            <div class="stat-icon"><i class="bi bi-activity"></i></div>
+            <div class="stat-val" id="statBMI">—</div>
+            <div class="stat-label">BMI Score</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="stat-card stat-purple">
+            <div class="stat-icon"><i class="bi bi-droplet-fill"></i></div>
+            <div class="stat-val" id="statWater">2.5 L</div>
+            <div class="stat-label">Daily Water</div>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="stat-card stat-orange">
+            <div class="stat-icon"><i class="bi bi-egg-fill"></i></div>
+            <div class="stat-val" id="statProtein">—</div>
+            <div class="stat-label">Protein Target</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile form -->
+      <div class="card content-card">
+        <div class="card-header">
+          <i class="bi bi-person-circle me-2 text-accent"></i><span class="fw-600">Your Health Profile</span>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label label-sm">Full Name</label>
+              <input type="text" class="form-control input-field" id="profileName" placeholder="Your name" />
+            </div>
+            <div class="col-md-2">
+              <label class="form-label label-sm">Age</label>
+              <input type="number" class="form-control input-field" id="profileAge" placeholder="25" min="1" max="120" />
+            </div>
+            <div class="col-md-2">
+              <label class="form-label label-sm">Gender</label>
+              <select class="form-select input-field" id="profileGender">
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label label-sm">Weight (kg)</label>
+              <input type="number" class="form-control input-field" id="profileWeight" placeholder="70" min="20" max="300" />
+            </div>
+            <div class="col-md-2">
+              <label class="form-label label-sm">Height (cm)</label>
+              <input type="number" class="form-control input-field" id="profileHeight" placeholder="170" min="50" max="250" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label label-sm">Goal</label>
+              <select class="form-select input-field" id="profileGoal">
+                <option value="weight_loss">Weight Loss</option>
+                <option value="weight_gain">Weight Gain</option>
+                <option value="maintain_weight">Maintain Weight</option>
+                <option value="muscle_building">Muscle Building</option>
+                <option value="manage_diabetes">Manage Diabetes</option>
+                <option value="manage_pcos">Manage PCOS</option>
+                <option value="athletic_performance">Athletic Performance</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label label-sm">Activity Level</label>
+              <select class="form-select input-field" id="profileActivity">
+                <option value="sedentary">Sedentary (desk job)</option>
+                <option value="lightly_active">Lightly Active (1–3 days/week)</option>
+                <option value="moderately_active" selected>Moderately Active (3–5 days)</option>
+                <option value="very_active">Very Active (6–7 days)</option>
+                <option value="extra_active">Extra Active (athlete)</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label label-sm">Diet Type</label>
+              <select class="form-select input-field" id="profileDiet">
+                <option value="vegetarian">Vegetarian</option>
+                <option value="vegan">Vegan</option>
+                <option value="non-vegetarian">Non-Vegetarian</option>
+                <option value="eggetarian">Eggetarian</option>
+                <option value="jain">Jain</option>
+                <option value="keto">Keto</option>
+                <option value="paleo">Paleo</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label label-sm">Medical Conditions</label>
+              <input type="text" class="form-control input-field" id="profileConditions"
+                placeholder="e.g. diabetes, hypertension, PCOS (or none)" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label label-sm">Allergies / Dislikes</label>
+              <input type="text" class="form-control input-field" id="profileAllergies"
+                placeholder="e.g. nuts, dairy, gluten (or none)" />
+            </div>
+          </div>
+          <div class="d-flex gap-2 mt-4">
+            <button class="btn btn-primary btn-ripple" id="saveProfileBtn">
+              <i class="bi bi-floppy2-fill me-2"></i>Save Profile
+            </button>
+            <button class="btn btn-success btn-ripple" id="genNutritionPlanBtn">
+              <i class="bi bi-stars me-2"></i>Generate My Nutrition Plan
+            </button>
+          </div>
+          <div id="dashboardResult" class="result-box mt-4 d-none"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB: MEAL PLANNER ───────────────────────────────── -->
+    <div class="tab-pane d-none" id="tab-meal-planner">
+      <div class="row g-3">
+        <div class="col-lg-5">
+          <div class="card content-card h-100">
+            <div class="card-header">
+              <i class="bi bi-calendar3-fill me-2 text-accent"></i><span class="fw-600">Generate 7-Day Meal Plan</span>
+            </div>
+            <div class="card-body d-flex flex-column gap-3">
+              <div class="row g-2">
+                <div class="col-6">
+                  <label class="form-label label-sm">Your Name</label>
+                  <input type="text" class="form-control input-field" id="mpName" placeholder="Name" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label label-sm">Age</label>
+                  <input type="number" class="form-control input-field" id="mpAge" placeholder="Age" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label label-sm">Gender</label>
+                  <select class="form-select input-field" id="mpGender">
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label label-sm">Weight (kg)</label>
+                  <input type="number" class="form-control input-field" id="mpWeight" placeholder="70" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label label-sm">Height (cm)</label>
+                  <input type="number" class="form-control input-field" id="mpHeight" placeholder="170" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label label-sm">Activity Level</label>
+                  <select class="form-select input-field" id="mpActivity">
+                    <option value="sedentary">Sedentary</option>
+                    <option value="lightly_active">Lightly Active</option>
+                    <option value="moderately_active" selected>Moderately Active</option>
+                    <option value="very_active">Very Active</option>
+                    <option value="extra_active">Extra Active</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label label-sm">Goal</label>
+                  <select class="form-select input-field" id="mpGoal">
+                    <option value="weight loss">Weight Loss</option>
+                    <option value="weight gain">Weight Gain</option>
+                    <option value="maintain weight">Maintain Weight</option>
+                    <option value="muscle building">Muscle Building</option>
+                    <option value="manage diabetes">Manage Diabetes</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label label-sm">Diet Type</label>
+                  <select class="form-select input-field" id="mpDiet">
+                    <option value="vegetarian">Vegetarian</option>
+                    <option value="vegan">Vegan</option>
+                    <option value="non-vegetarian">Non-Vegetarian</option>
+                    <option value="eggetarian">Eggetarian</option>
+                    <option value="jain">Jain</option>
+                    <option value="keto">Keto</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label label-sm">Cuisine Preference</label>
+                  <select class="form-select input-field" id="mpCuisine">
+                    <option value="North Indian">North Indian</option>
+                    <option value="South Indian">South Indian</option>
+                    <option value="Bengali">Bengali</option>
+                    <option value="Gujarati">Gujarati</option>
+                    <option value="Maharashtrian">Maharashtrian</option>
+                    <option value="Pan-Indian">Pan-Indian</option>
+                    <option value="Mediterranean">Mediterranean</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label label-sm">Medical Conditions</label>
+                  <input type="text" class="form-control input-field" id="mpConditions"
+                    placeholder="diabetes, hypertension, PCOS (or none)" />
+                </div>
+                <div class="col-12">
+                  <label class="form-label label-sm">Allergies / Dislikes</label>
+                  <input type="text" class="form-control input-field" id="mpAllergies"
+                    placeholder="nuts, dairy, gluten (or none)" />
+                </div>
+              </div>
+              <button class="btn btn-primary btn-ripple mt-auto" id="genMealPlanBtn">
+                <i class="bi bi-stars me-2"></i>Generate My 7-Day Plan
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-7">
+          <div class="card content-card h-100">
+            <div class="card-header d-flex align-items-center justify-content-between">
+              <span><i class="bi bi-journal-text me-2 text-accent"></i><span class="fw-600">Your Meal Plan</span></span>
+              <button class="btn btn-xs btn-ghost" id="copyMealPlanBtn" title="Copy to clipboard" style="display:none">
+                <i class="bi bi-clipboard2-check me-1"></i>Copy
+              </button>
+            </div>
+            <div class="card-body overflow-y-auto" id="mealPlanResult">
+              <div class="empty-state">
+                <i class="bi bi-calendar3"></i>
+                <p>Fill in the form and click <strong>Generate</strong> to get your personalised 7-day meal plan.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB: BMI CALCULATOR ─────────────────────────────── -->
+    <div class="tab-pane d-none" id="tab-bmi">
+      <div class="row g-3 justify-content-center">
+        <div class="col-lg-5">
+          <div class="card content-card">
+            <div class="card-header">
+              <i class="bi bi-activity me-2 text-accent"></i><span class="fw-600">BMI & Calorie Calculator</span>
+            </div>
+            <div class="card-body d-flex flex-column gap-3">
+              <div class="row g-2">
+                <div class="col-6">
+                  <label class="form-label label-sm">Weight (kg)</label>
+                  <input type="number" class="form-control input-field" id="bmiWeight" placeholder="70" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label label-sm">Height (cm)</label>
+                  <input type="number" class="form-control input-field" id="bmiHeight" placeholder="170" />
+                </div>
+                <div class="col-4">
+                  <label class="form-label label-sm">Age</label>
+                  <input type="number" class="form-control input-field" id="bmiAge" placeholder="30" />
+                </div>
+                <div class="col-4">
+                  <label class="form-label label-sm">Gender</label>
+                  <select class="form-select input-field" id="bmiGender">
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                  </select>
+                </div>
+                <div class="col-4">
+                  <label class="form-label label-sm">Activity</label>
+                  <select class="form-select input-field" id="bmiActivity">
+                    <option value="sedentary">Sedentary</option>
+                    <option value="lightly_active">Light</option>
+                    <option value="moderately_active" selected>Moderate</option>
+                    <option value="very_active">Very Active</option>
+                    <option value="extra_active">Athlete</option>
+                  </select>
+                </div>
+              </div>
+              <button class="btn btn-primary btn-ripple" id="calcBmiBtn">
+                <i class="bi bi-calculator-fill me-2"></i>Calculate BMI & TDEE
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-7">
+          <div id="bmiResultPanel" class="d-none">
+            <!-- BMI Gauge + Stats cards injected by JS -->
+          </div>
+          <div id="bmiEmptyState" class="card content-card">
+            <div class="card-body">
+              <div class="empty-state">
+                <i class="bi bi-speedometer2"></i>
+                <p>Enter your measurements to calculate your <strong>BMI</strong>, <strong>BMR</strong>, and <strong>daily calorie targets</strong>.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB: FAMILY PROFILES ────────────────────────────── -->
+    <div class="tab-pane d-none" id="tab-family">
+      <div class="row g-3">
+        <div class="col-lg-5">
+          <div class="card content-card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+              <span><i class="bi bi-person-plus-fill me-2 text-accent"></i><span class="fw-600">Add Family Member</span></span>
+              <span class="badge bg-accent" id="memberCount">0 members</span>
+            </div>
+            <div class="card-body d-flex flex-column gap-2">
+              <div class="row g-2">
+                <div class="col-6">
+                  <label class="form-label label-sm">Name</label>
+                  <input type="text" class="form-control input-field" id="famName" placeholder="e.g. Ananya" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label label-sm">Age</label>
+                  <input type="number" class="form-control input-field" id="famAge" placeholder="35" />
+                </div>
+                <div class="col-6">
+                  <label class="form-label label-sm">Gender</label>
+                  <select class="form-select input-field" id="famGender">
+                    <option value="female">Female</option>
+                    <option value="male">Male</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label label-sm">Goal</label>
+                  <select class="form-select input-field" id="famGoal">
+                    <option value="maintain weight">Maintain Weight</option>
+                    <option value="weight loss">Weight Loss</option>
+                    <option value="weight gain">Weight Gain</option>
+                    <option value="manage diabetes">Manage Diabetes</option>
+                    <option value="child growth">Child Growth</option>
+                    <option value="senior health">Senior Health</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label class="form-label label-sm">Medical Conditions</label>
+                  <input type="text" class="form-control input-field" id="famConditions"
+                    placeholder="diabetes, BP (or none)" />
+                </div>
+              </div>
+              <button class="btn btn-outline-primary btn-ripple" id="addMemberBtn">
+                <i class="bi bi-person-plus me-2"></i>Add Member
+              </button>
+
+              <!-- Member list -->
+              <div id="familyMemberList" class="member-list mt-2"></div>
+
+              <!-- Family plan options -->
+              <div class="row g-2 mt-1">
+                <div class="col-6">
+                  <label class="form-label label-sm">Cuisine</label>
+                  <select class="form-select input-field" id="famCuisine">
+                    <option value="North Indian">North Indian</option>
+                    <option value="South Indian">South Indian</option>
+                    <option value="Bengali">Bengali</option>
+                    <option value="Pan-Indian">Pan-Indian</option>
+                    <option value="Mediterranean">Mediterranean</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label label-sm">Budget</label>
+                  <select class="form-select input-field" id="famBudget">
+                    <option value="budget">Budget-Friendly</option>
+                    <option value="moderate" selected>Moderate</option>
+                    <option value="premium">Premium</option>
+                  </select>
+                </div>
+              </div>
+              <button class="btn btn-success btn-ripple mt-1" id="genFamilyPlanBtn">
+                <i class="bi bi-people-fill me-2"></i>Generate Family Plan
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-7">
+          <div class="card content-card h-100">
+            <div class="card-header">
+              <i class="bi bi-journals me-2 text-accent"></i><span class="fw-600">Family Nutrition Plan</span>
+            </div>
+            <div class="card-body overflow-y-auto" id="familyPlanResult">
+              <div class="empty-state">
+                <i class="bi bi-people"></i>
+                <p>Add family members and click <strong>Generate Family Plan</strong> for a shared meal plan that works for everyone.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /container-fluid -->
+</main>
+
+<!-- ── Loading Spinner Overlay ──────────────────────────────── -->
+<div class="loading-overlay d-none" id="loadingOverlay">
+  <div class="loader-card">
+    <div class="spinner-ripple"><div></div><div></div></div>
+    <p class="loader-text" id="loaderText">Thinking…</p>
+  </div>
+</div>
+
+<!-- ── Toast Notification ────────────────────────────────────── -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:2000">
+  <div id="toastEl" class="toast align-items-center border-0" role="alert">
+    <div class="d-flex">
+      <div class="toast-body" id="toastMsg">Action completed.</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- App JS -->
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
