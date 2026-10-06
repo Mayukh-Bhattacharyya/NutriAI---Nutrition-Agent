@@ -405,4 +405,4 @@ MIT — free to use, modify, and distribute.
 
 ---
 
-*Built with ❤️ using IBM Watsonx.ai Granite · Flask · Bootstrap 5*
+*Built using IBM Watsonx.ai Granite · Flask · Bootstrap 5*
